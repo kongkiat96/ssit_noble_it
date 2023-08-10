@@ -270,15 +270,30 @@ if (isset($_POST['export'])) {
                                 <!-- <td><?php echo @getemployee($show_total->user_key); ?></td>
                                 <td><?php echo @getemployee_department($show_total->user_key); ?></td> -->
                                 <td><?php echo $show_total->se_asset; ?></td>
-                                <td><?php echo $show_total->se_namecall; ?></td>
+                                <td><?php
+                                    $search = $getdata->my_sql_query($connect, NULL, "employee", "card_key ='" . $show_total->se_namecall . "'");
+                                    if (COUNT($search) == 0) {
+                                        $chkName = $show_total->se_namecall;
+                                    } else {
+                                        $chkName = getemployee($show_total->se_namecall);
+                                    }
+
+                                    echo $chkName;
+                                    ?></td>
                                 <td><?php echo @prefixbranch($show_total->se_location); ?></td>
                                 <td><?php echo @service($show_total->se_id); ?></td>
                                 <td><?php echo $show_total->se_other; ?></td>
                                 <td><?php echo $show_total->se_approve; ?></td>
                                 <td class="text-center">
                                     <?php
-                                    if (@$show_total->card_status == NULL) {
+                                    if (@$show_total->card_status == NULL && ($show_total->approve_department == 'IT' ||  $show_total->approve_department != 'HR')) {
                                         echo '<span class="badge badge-warning">รอดำเนินการแก้ไข</span>';
+                                    } else if ($show_total->card_status == 'wait_approve' && $show_total->approve_department == 'IT') {
+                                        echo '<span class="badge badge-info">รอการอนุมัติจากผู้บังคับบัญชา</span>';
+                                    } else if ($show_total->card_status == NULL && $show_total->approve_department == 'HR') {
+                                        echo '<span class="badge badge-info">รอการอนุมัติจาก HR</span>';
+                                    } else if ($show_total->card_status == 'over_work') {
+                                        echo '<span class="badge badge-danger">ปิดงานอัตโนมัติ</span>';
                                     } else {
                                         echo @cardStatus($show_total->card_status);
                                     }

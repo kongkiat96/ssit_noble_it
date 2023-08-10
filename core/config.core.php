@@ -1,12 +1,12 @@
 <?php
 // MySQL hostname
-define('DB_HOST', 'localhost:3306');
+define('DB_HOST', 'localhost');
 
 // MySQL database username
-define('DB_USERNAME', 'systemit_noble_it');
+define('DB_USERNAME', 'root');
 
 // MySQL database password
-define('DB_PASSWORD', 'C9mrv3&82');
+define('DB_PASSWORD', 'root');
 
 // MySQL database name
 define('DB_NAME', 'noble_it');
