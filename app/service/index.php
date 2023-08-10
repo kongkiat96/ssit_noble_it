@@ -211,7 +211,7 @@ include_once 'procress/dataSave.php';
               <th>สถานะ : </th>
               <th>วันที่แจ้ง : </th>
               <th>เวลา : </th>
-              
+
               <th>ค่าใช้จ่าย : </th>
               <th>ดำเนินการ : </th>
               <th>ผู้ดำเนินการ : </th>
@@ -223,7 +223,7 @@ include_once 'procress/dataSave.php';
           <tbody>
             <?php
             $i = 0;
-            $get_total = $getdata->my_sql_select($connect, NULL, "problem_list", "ID AND card_status NOT IN ('2e34609794290a770cb0349119d78d21','57995055c28df9e82476a54f852bd214','2376b33c92767c1437421a99bbc7164f') OR card_status IS NULL ORDER BY ticket DESC");
+            $get_total = $getdata->my_sql_select($connect, NULL, "problem_list", "card_status NOT IN ('2e34609794290a770cb0349119d78d21','57995055c28df9e82476a54f852bd214','2376b33c92767c1437421a99bbc7164f','wait_approve') OR card_status IS NULL AND approve_department = 'IT' ORDER BY ticket DESC");
             while ($show_total = mysqli_fetch_object($get_total)) {
               $i++;
             ?>
@@ -232,29 +232,46 @@ include_once 'procress/dataSave.php';
                 <td><?php echo @$show_total->ticket; ?></td>
 
                 <!-- <td><?php echo @getemployee($show_total->user_key); ?></td> -->
-                <td><?php echo $show_total->se_namecall; ?></td>
                 <td>
-                  <?php 
-                    $count = $getdata->my_sql_show_rows($connect, "card_info", "asset_code = '".$show_total->se_asset."'");
-                    if($count >= '1'){
-                      echo '<a href="?p=view_repair&key='.@$show_total->se_asset.'" target="_blank" title="ตรวจสอบ">'.@$show_total->se_asset.'</a>';
-                    } else {
-                      echo $show_total->se_asset;
-                    }
+                  <?php
+                  $search = $getdata->my_sql_query($connect, NULL, "employee", "card_key ='" . $show_total->se_namecall . "'");
+                  if (COUNT($search) == 0) {
+                    $chkName = $show_total->se_namecall;
+                  } else {
+                    $chkName = getemployee($show_total->se_namecall);
+                  }
+
+                  echo $chkName;
+                  ?>
+                </td>
+                <td>
+                  <?php
+                  $count = $getdata->my_sql_show_rows($connect, "card_info", "asset_code = '" . $show_total->se_asset . "'");
+                  if ($count >= '1') {
+                    echo '<a href="?p=view_repair&key=' . @$show_total->se_asset . '" target="_blank" title="ตรวจสอบ">' . @$show_total->se_asset . '</a>';
+                  } else {
+                    echo $show_total->se_asset;
+                  }
                   ?>
                 </td>
                 <!-- <td><?php echo @getemployee_department($show_total->user_key); ?></td> -->
                 <td><?php echo @prefixbranch($show_total->se_location); ?></td>
 
 
-                
+
                 <td style="white-space: revert;">
                   <?php echo $show_total->se_other; ?>
                 </td>
                 <td class="text-center">
                   <?php
-                  if (@$show_total->card_status == NULL) {
+                  if (@$show_total->card_status == NULL && ($show_total->approve_department == 'IT' ||  $show_total->approve_department != 'HR')) {
                     echo '<span class="badge badge-warning">รอดำเนินการแก้ไข</span>';
+                  } else if ($show_total->card_status == 'wait_approve' && $show_total->approve_department == 'IT') {
+                    echo '<span class="badge badge-info">รอการอนุมัติจากผู้บังคับบัญชา</span>';
+                  } else if ($show_total->card_status == NULL && $show_total->approve_department == 'HR') {
+                    echo '<span class="badge badge-info">รอการอนุมัติจาก HR</span>';
+                  } else if ($show_total->card_status == 'over_work') {
+                    echo '<span class="badge badge-danger">ปิดงานอัตโนมัติ</span>';
                   } else {
                     echo @cardStatus($show_total->card_status);
                   }
@@ -360,7 +377,7 @@ include_once 'procress/dataSave.php';
               <tbody>
                 <?php
                 $i = 0;
-                $get_total = $getdata->my_sql_select($connect, NULL, "problem_list", "user_key = '" . $_SESSION['ukey'] . "'ORDER BY ticket DESC");
+                $get_total = $getdata->my_sql_select($connect, NULL, "problem_list", "user_key = '" . $_SESSION['ukey'] . "'AND approve_department = 'IT' ORDER BY ticket DESC");
                 while ($show_total = mysqli_fetch_object($get_total)) {
                   $i++;
                 ?>
